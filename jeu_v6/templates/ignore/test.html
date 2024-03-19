@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PENDU INVERSÉ</title>
+    <style>
+        /* Ajoutez vos styles ici */
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>Choisissez votre difficulté !</h1>
+        <ul>
+            <li><button onclick="startGame('Facile')">Facile</button></li>
+            <li><button onclick="startGame('Moyen')">Moyen</button></li>
+            <li><button onclick="startGame('Difficile')">Difficile</button></li>
+        </ul>
+        <button onclick="goToMenu()">Retour au Menu</button>
+    </div>
+
+    <script>
+        function startGame(difficulty) {
+            document.getElementById('game-container').innerHTML = `
+                <h1>Liste de mots</h1>
+                <form id="wordForm">
+                    <h2>Mots de difficulté ${difficulty}</h2>
+                    <ul id="wordList"></ul>
+                    <input type="button" value="Commencer le Jeu" onclick="selectWord()">
+                </form>
+                <button onclick="goToMenu()">Retour au Menu</button>
+            `;
+
+            // Supposons que vous récupériez les mots de la difficulté choisie depuis le serveur Flask.
+            const words = ['Mot1', 'Mot2', 'Mot3'];
+            const wordList = document.getElementById('wordList');
+
+            words.forEach(word => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `
+                    <label>
+                        <input type="radio" name="selected_word" value="${word}">
+                        ${word}
+                    </label>
+                `;
+                wordList.appendChild(listItem);
+            });
+        }
+
+        function selectWord() {
+            const selectedWord = document.querySelector('input[name="selected_word"]:checked');
+            if (selectedWord) {
+                document.getElementById('game-container').innerHTML = `
+                    <h1>Commencer la Partie</h1>
+                    <p>Le mot choisi est : ${selectedWord.value}</p>
+                    <p>L'ordinateur va vous donner des lettres, à vous de lui dire si elles se trouvent dans le mot ou non !</p>
+                    <button onclick="showGame('${selectedWord.value}')">C'est parti !</button>
+                    <button onclick="goToMenu()">Retour au Menu</button>
+                `;
+            }
+        }
+
+        function showGame(selectedWord) {
+            document.getElementById('game-container').innerHTML = `
+                <h1>Affichage du Jeu</h1>
+                <p>Le mot choisi est : ${selectedWord}</p>
+                <!-- Ajoutez ici la logique pour afficher le jeu et gérer les interactions utilisateur. -->
+                <!-- Vous pouvez utiliser fetch() pour communiquer avec le serveur Flask pour la logique du jeu. -->
+                <!-- Pour l'instant, affichons simplement un bouton de fin de partie. -->
+                <button onclick="endGame()">Fin de la Partie</button>
+            `;
+        }
+
+        function endGame() {
+            document.getElementById('game-container').innerHTML = `
+                <h1>Fin de la Partie</h1>
+                <p>Merci d'avoir joué !</p>
+                <button onclick="goToMenu()">Retour au Menu</button>
+            `;
+        }
+
+        function goToMenu() {
+            window.location.reload();
+        }
+    </script>
+</body>
+</html>

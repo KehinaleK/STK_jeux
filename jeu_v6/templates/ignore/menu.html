@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PENDU INVERSÉ</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            margin: 10px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #333;
+        }
+
+        button {
+            margin-top: 20px;
+        }
+
+        /* Style for difficulty rectangles */
+        li {
+            background-color: #ccc;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        /* Style for rules box */
+        #rules-box {
+            background-color: #f0f0f0;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: none; /* Initially hidden */
+        }
+
+        #close-rules {
+            cursor: pointer;
+            color: #777;
+            float: right;
+        }
+    </style>
+</head>
+<body>
+    <div id="rules-box">
+        <span id="close-rules" onclick="closeRules()">X</span>
+        <h3>Règles du jeu :</h3>
+        <p>Les règles du jeu sont simples...\n Vous avez le choix entre trois difficultés : <b>facile</b>, <b>moyenne</b>, et <b>difficile</b>.\n </p>
+        
+    </div>
+    <h1>Choisissez votre difficulté !</h1>
+    <ul>
+        <li><a href="{{ url_for('choisir_diff', difficulte='Facile') }}">Facile</a></li>
+        <li><a href="{{ url_for('choisir_diff', difficulte='Moyen') }}">Moyen</a></li>
+        <li><a href="{{ url_for('choisir_diff', difficulte='Difficile') }}">Difficile</a></li>
+    </ul>
+    <button><a href="{{ url_for('menu') }}">Retour au Menu</a></button>
+
+    <script>
+        // JavaScript function to close the rules box
+        function closeRules() {
+            document.getElementById('rules-box').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
