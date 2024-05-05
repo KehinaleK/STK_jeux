@@ -1,0 +1,241 @@
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>Affichage des Lettres</title>
+    <style>
+        body {
+            background-image: url('/static/page/backgroundpage1.png');
+            font-family: 'baloo 2';
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            margin: 0;
+        }
+        #lives { /* Pour les vies */
+            position: absolute;  
+            top: 20px;          
+            left: 20px;  
+            font-size: 80px; 
+            letter-spacing: 6px;
+            text-shadow: 
+                -1px -1px 0 #000,  
+                1px -1px 0 #000,
+                -1px  1px 0 #000,
+                1px  1px 0 #000;
+            color: #A80000;
+        }
+        #MotChoisi { /* Correspond au mot affiché dans les modes 1 et 2 ! */
+            width: 100%;
+            text-align: center;
+            margin-top: 25px;
+            font-size: 50px;
+        }
+
+        #EtatActuel { /* Correspond aux traits ! */
+            width: 100%;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 50px;
+        }
+
+        .mode3-top-margin {
+            margin: 65px;
+        }
+
+        #LignePrincipale { /* La ligne principale de la page, donc image et vidéo alignées dessus ! */
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        
+        
+        #Colonne_liste_images_lettres video { /*  Ligne avec la vidéo de la lettre */
+        width: 550px;
+        height: 550px;
+        border: 4px solid #7b6d5a;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        border-radius: 25px;
+        object-fit: cover;
+        }
+
+        #Colonne_image_mot img { /* Ligne uniquement dans le mode 1, image du mot ! */
+            width: 550px;
+            height: 550px;
+            border: 4px solid #7b6d5a;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            border-radius: 25px;
+        }
+
+        .espace_video_image {
+            margin-right: 30px; 
+        }
+        
+        .hidden {
+            display: none;
+        }
+
+        img {
+            width: 600px;
+            height: 600px;
+        }
+        #Affichage { /* La ligne avec les boutons */
+            margin-top: 20px;
+            text-align: center; 
+            width: 100%; 
+        }
+        #Affichage > * {
+            margin: 5px; /* espace entre oui et non */
+            background-color: #d4c0ac;
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid #7b6d5a;
+            cursor: pointer;
+        }
+
+        #formFinDePartie {
+            margin-top: 20px;
+            text-align: center;
+            background-color: #d4c0ac;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+    </style>
+</head>
+
+<body>
+    {% if game_mode == '1' or game_mode == '2' %}
+        <div id="MotChoisi"><b>{{ mot_choisi }}</b></div>
+    {% endif %}
+
+    <div id="EtatActuel" class="{% if game_mode == '3' %}mode3-top-margin{% endif %}">
+        <div id="etat_actuel"></div>
+    </div> 
+
+    <div id="LignePrincipale">
+        {% if game_mode == '1' %}
+            <div id="Colonne_image_mot" class="espace_video_image">
+                <img src="{{ url_for('static', filename=lien_image) }}" alt="Image mot">
+            </div>
+        {% endif %}
+        <div id="Colonne_liste_images_lettres">
+            <div id="liste_affichage">
+                {% for element in liste_affichage %}
+                    <div class="mot {% if loop.index0 != currentIndex %}hidden{% endif %}">
+                        <video autoplay loop muted playsinline preload="auto">
+                            <source src="{{ url_for('static', filename=lsf_lettres[element]) }}" type="video/mp4">
+                            Oops! Votre navigateur ne supporte pas les vidéos.
+                        </video>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <form id="Affichage" action="{{ url_for('affichage', difficulte=difficulte, game_mode=game_mode) }}" method="post">
+        <input type="hidden" id="current_index" name="currentIndex" value="{{ currentIndex }}">
+        <button type="button" class="response_button" data-response="oui">OUI</button>
+        <button type="button" class="response_button" data-response="non">NON</button>
+    </form>
+    <div id="lives"></div>
+    <form id="formFinDePartie" action="{{ url_for('fin_de_partie') }}" method="get" class="hidden">
+        <input type="hidden" name="vies" value="{{ vies }}">
+        <button type="submit">Fin de partie</button>
+    </form>
+
+    <div id="pythonData" 
+        data-liste-reponses="{{ liste_reponses_json | safe }}" 
+        data-liste-lettres-devinees="{{ liste_lettres_devinees_json | safe}}"
+        style="display: none;">
+    </div>
+    
+    <script>
+        
+        document.addEventListener('DOMContentLoaded', function () {
+            // On initialise toutes les variables utiles pour le jeu
+            let currentIndex = parseInt('{{ currentIndex }}', 10);
+            let vies = parseInt('{{ vies }}', 10);
+            // On initialise aussi tout ce qui vient du script python
+            const listeAffichage = JSON.parse('{{ liste_affichage_json | safe }}');
+            const listeReponses = JSON.parse('{{ liste_reponses_json | safe }}');
+            const listeLettresDevinees = JSON.parse('{{ liste_lettres_devinees_json | safe}}');
+            const initialState = '{{ liste_lettres_devinees[0] | safe }}';
+
+            document.getElementById('etat_actuel').textContent = initialState;
+            updateViesDisplay(vies); // On commence la fonction pour d'occuper des coeurs !
+
+            function updateViesDisplay(vies) {
+                const coeur = '❤️';
+                const coeur_vide = '🖤'; 
+                let recipient = '';
+                for (let i = 0; i < 3; i++) { 
+                    if (i < vies) {
+                        recipient += coeur;
+                    } else {
+                        recipient += coeur_vide;
+                    }
+                }
+                document.getElementById('lives').innerHTML = recipient;
+                document.querySelector('input[name="vies"]').value = vies;
+            }
+
+
+            document.querySelectorAll('.response_button').forEach(button => {
+            button.addEventListener('click', function(event) {
+                const userInput = this.getAttribute('data-response') === 'oui';
+                const isLastLetter = currentIndex === listeAffichage.length - 1;
+
+                if (isLastLetter && userInput) {
+                    document.getElementById('formFinDePartie').submit();
+                    return;
+                }
+
+                if (listeReponses[currentIndex] !== userInput) {
+                    vies -= 1; 
+                    updateViesDisplay(vies);
+                }
+
+                if (!isLastLetter) {
+                    currentIndex += 1; 
+                }
+
+                if (vies <= 0) {
+                    document.getElementById('formFinDePartie').submit();
+                    return;
+                }
+
+                updateDisplay(currentIndex); 
+            });
+        });
+
+            function updateDisplay(currentIndex) {
+            document.getElementById('current_index').value = currentIndex;
+
+                const lettresDevineesActuellement = listeLettresDevinees[currentIndex];
+                document.getElementById('etat_actuel').textContent = lettresDevineesActuellement;
+
+                document.querySelectorAll('.mot').forEach((element, index) => {
+                element.classList.add('hidden');
+                if (index === currentIndex) {
+                    const videoElement = element.querySelector('video');
+                    videoElement.currentTime = 0;
+                    videoElement.play(); 
+                }
+                });
+
+                const nextMotElement = document.querySelector(`.mot:nth-child(${currentIndex + 1})`);
+                if (nextMotElement) {
+                    nextMotElement.classList.remove('hidden');
+                }
+            }
+        });
+
+        </script>
+        
+</body>
+</html>

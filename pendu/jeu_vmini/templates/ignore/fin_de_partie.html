@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fin de Partie</title>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #liste_affichage {
+            text-align: center;
+        }
+
+        .mot {
+            margin: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        img {
+            width: 300px;
+            height: 300px;
+        }
+
+        .button-container {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div>
+    <h1>Fin de la partie</h1>
+    <p>Merci d'avoir joué !</p>
+    
+    <div class="button-container">
+        <button><a href="{{ url_for('menu') }}">Retour au Menu</a></button>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Habitat Images</title>
+    <style>
+        body {
+            background-image: url('/static/habitats/page/fond_habitats.png');
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+            20%, 40%, 60%, 80% { transform: translateX(10px); }
+        }
+
+        .shake {
+            animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+            transform: translate3d(0, 0, 0);
+            backface-visibility: hidden;
+            perspective: 1000px;
+        }
+
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+        .grid-item {
+            text-align: center;
+        }
+        img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .eliminated {
+            filter: blur(4px);
+            pointer-events: none;
+        }
+
+        .hidden {
+    visibility: hidden;
+    }
+
+
+    </style>
+</head>
+<body>
+    <h1 id="attributeDisplay">Current Attribute: {{ attribute }}</h1>
+    <div class="grid-container">
+        {% for habitat, path in habitats.items() %}
+        <div class="grid-item">
+            <img src="{{ url_for('static', filename=path) }}" alt="{{ habitat }}" onclick="imageClicked(this, '{{ path }}')">
+        </div>
+        {% endfor %}
+    </div>
+    <script>
+        let eliminableImages = {{ eliminable_images | tojson | safe }};
+        let totalEliminationsRequired = eliminableImages.length;
+        let currentEliminations = 0;
+        let allEliminatedImages = new Set(); // Set to keep track of all eliminated images
+        window.onload = function() {
+    // Retrieve and parse the stored data to restore state
+    const storedEliminations = localStorage.getItem('allEliminatedImages');
+    allEliminatedImages = new Set(storedEliminations ? JSON.parse(storedEliminations) : []);
+    updateImageStates();  // Ensure visual state reflects the stored state
+};
+
+function updateLocalStorage() {
+    // Store the updated state in local storage
+    localStorage.setItem('allEliminatedImages', JSON.stringify(Array.from(allEliminatedImages)));
+}
+
+function fetchNextAttribute() {
+    fetch("{{ url_for('next_attribute', themes='habitats') }}")
+        .then(response => response.json())
+        .then(data => {
+            console.log("Fetch next attribute response:", data);
+            if (data.end) {
+                alert("Game Over!");
+            } else {
+                document.getElementById('attributeDisplay').textContent = "Current Attribute: " + data.attribute;
+                eliminableImages = data.eliminable_images;
+                totalEliminationsRequired = eliminableImages.length;
+                currentEliminations = 0;
+                updateImageStates(); // Reinforce state updates
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching the next attribute:', error);
+        });
+}
+
+function updateImageStates() {
+    document.querySelectorAll('img').forEach(img => {
+        const imagePath = img.getAttribute('src');
+        console.log("Updating state for image:", imagePath);
+        if (allEliminatedImages.has(imagePath)) {
+            img.classList.add('hidden');
+        } else {
+            img.classList.remove('hidden');
+        }
+    });
+}
+
+function imageClicked(imgElement, imagePath) {
+    console.log("Clicked image path:", imagePath);
+    if (eliminableImages.includes(imagePath)) {
+        if (!imgElement.classList.contains('hidden')) {
+            imgElement.classList.add('hidden');
+            allEliminatedImages.add(imagePath);
+            updateLocalStorage(); // Update local storage after modification
+            currentEliminations++;
+            console.log("Eliminated count:", currentEliminations, "out of", totalEliminationsRequired);
+            if (currentEliminations === totalEliminationsRequired) {
+                console.log("Fetching next attribute because all required images are eliminated.");
+                fetchNextAttribute();
+            }
+        }
+    } else {
+        alert(`No! This habitat has the attribute '${document.getElementById('attributeDisplay').textContent.replace('Current Attribute: ', '')}'.`);
+        imgElement.classList.add('shake');
+        imgElement.addEventListener('animationend', () => {
+            imgElement.classList.remove('shake');
+        }, { once: true });
+    }
+}
+
+
+
+    </script>
+    
+        
+</body>
+</html>
